@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spend a Billionaire's Money</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1, #money, #timer, #result {
+      margin: 10px 0;
+    }
+
+    #money, #timer {
+      font-size: 24px;
+    }
+
+    .store {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .item {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      width: 220px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .item img {
+      max-width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+
+    .item h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+    }
+
+    .item p {
+      margin: 5px 0;
+    }
+
+    .item input {
+      width: 60px;
+      padding: 5px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+
+    .item button {
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+      transition: background-color 0.3s ease;
+    }
+
+    .item button:disabled {
+      background-color: #888;
+      cursor: not-allowed;
+    }
+
+    .item button:hover:not(:disabled) {
+      background-color: #218838;
+    }
+
+    #controls {
+      margin: 20px 0;
+    }
+
+    #controls button {
+      font-size: 18px;
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+
+    #controls button:hover {
+      background-color: #0056b3;
+    }
+
+    #result {
+      font-size: 28px;
+      font-weight: bold;
+      color: #333;
+      min-height: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Spend a Billionaire's Money</h1>
+  <div id="money">You have $1,000,000,000</div>
+  <div id="timer">Time Left: 5:00</div>
+  <div id="controls">
+    <button id="startBtn">Start</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+  <div id="result"></div>
+  <div class="store" id="store"></div>
+
+  <script>
+    const startingMoney = 1000000000;
+    let money = startingMoney;
+    const store = document.getElementById('store');
+    const moneyDisplay = document.getElementById('money');
+    const timerDisplay = document.getElementById('timer');
+    const resultDisplay = document.getElementById('result');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const timerMinutes = 5; // change time here
+    let totalSeconds = timerMinutes * 60;
+    let timerInterval = null;
+    let gameStarted = false;
+
+    const items = [
+      { name: "Big Mac", price: 5, image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Big_Mac_hamburger.jpg/320px-Big_Mac_hamburger.jpg" },
+      { name: "iPhone 15", price: 999, image: "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-15-pro-model-unselect-gallery-2-202309?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1692923772532" },
+      { name: "Tesla Model S", price: 90000, image: "https://tesla-cdn.thron.com/delivery/public/image/tesla/5f23d6b1-3b58-4cf5-b49d-7c60a30f899c/bvlatuR/std/4096x2560/_25-Hero-D" },
+      { name: "Luxury Yacht", price: 7500000, image: "https://upload.wikimedia.org/wikipedia/commons/0/03/Luxury_yacht.jpg" },
+      { name: "Private Jet", price: 25000000, image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Gulfstream_G650ER.jpg" },
+      { name: "NBA Team", price: 2300000000, image: "https://upload.wikimedia.org/wikipedia/en/thumb/0/03/NBA_logo.svg/512px-NBA_logo.svg.png" },
+      { name: "Island", price: 10000000, image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Island_in_the_South_Pacific.jpg" },
+      { name: "Super Bowl Ad", price: 7000000, image: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Super_Bowl_LVII_Logo.svg/640px-Super_Bowl_LVII_Logo.svg.png" },
+      { name: "Gold Watch", price: 50000, image: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Gold_watch.jpg" },
+      { name: "Diamond Ring", price: 100000, image: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Diamond_ring.jpg" },
+      { name: "Lamborghini", price: 200000, image: "https://upload.wikimedia.org/wikipedia/commons/f/f1/Lamborghini_Aventador_LP700-4_Orange.jpg" },
+      { name: "Penthouse in NYC", price: 88000000, image: "https://upload.wikimedia.org/wikipedia/commons/1/15/Penthouse_view_NYC.jpg" },
+      { name: "F1 Race Car", price: 1500000, image: "https://upload.wikimedia.org/wikipedia/commons/f/f9/F1_Race_Car.jpg" },
+      { name: "Private Island Resort", price: 25000000, image: "https://upload.wikimedia.org/wikipedia/commons/7/77/Private_Island_Maldives.jpg" },
+      { name: "Rare Art Piece", price: 10000000, image: "https://upload.wikimedia.org/wikipedia/commons/a/a3/Modern_art_painting.jpg" },
+      { name: "Mega Mansion", price: 50000000, image: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Mega_mansion.jpg" },
+      { name: "Helicopter", price: 1500000, image: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Helicopter_flight.jpg" },
+      { name: "Space Trip", price: 55000000, image: "https://upload.wikimedia.org/wikipedia/commons/3/3d/SpaceX_Crew_Dragon.jpg" },
+      { name: "Private Zoo", price: 10000000, image: "https://upload.wikimedia.org/wikipedia/commons/6/62/Private_zoo.jpg" },
+      { name: "Vintage Wine Collection", price: 200000, image: "https://upload.wikimedia.org/wikipedia/commons/5/59/Vintage_wine_collection.jpg" },
+    ];
+
+    // Track how many bought for each item
+    const boughtCount = new Array(items.length).fill(0);
+
+    function updateMoneyDisplay() {
+      moneyDisplay.innerText = `You have $${money.toLocaleString()}`;
+    }
+
+    function updateTimerDisplay() {
+      let minutes = Math.floor(totalSeconds / 60);
+      let seconds = totalSeconds % 60;
+      timerDisplay.innerText = `Time Left: ${minutes}:${seconds.toString().padStart(2,'0')}`;
+    }
+
+    function buyItem(price, inputId, counterId, index) {
+      if (!gameStarted) {
+        alert("Please press Start to begin!");
+        return;
+      }
+
+      const qtyInput = document.getElementById(inputId);
+      let quantity = parseInt(qtyInput.value);
+      if (isNaN(quantity) || quantity <= 0) {
+        alert("Enter a valid quantity (1 or more).");
+        return;
+      }
+      const totalCost = price * quantity;
+
+      if (money >= totalCost) {
+        money -= totalCost;
+        updateMoneyDisplay();
+
+        boughtCount[index] += quantity;
+        document.getElementById(counterId).textContent = boughtCount[index];
+
+        if (money <= 0) {
+          money = 0;
+          updateMoneyDisplay();
+          clearInterval(timerInterval);
+          resultDisplay.innerText = "🎉 Congratulations! You spent all the money!";
+          disableBuying(true);
+          return;
+        }
+      } else {
+        alert("Not enough money!");
+      }
+    }
+
+    function disableBuying(disabled) {
+      items.forEach((_, index) => {
+        const btn = document.getElementById(`btn-${index}`);
+        const qtyInput = document.getElementById(`qty-${index}`);
+        if (btn) btn.disabled = disabled;
+        if (qtyInput) qtyInput.disabled = disabled;
+      });
+    }
+
+    function renderStore() {
+      store.innerHTML = '';
+      items.forEach((item, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item';
+        itemDiv.innerHTML = `
+          <img src="${item.image}" alt="${item.name}" />
+          <h3>${item.name}</h3>
+          <p>Price: $${item.price.toLocaleString()}</p>
+          <input type="number" id="qty-${index}" value="1" min="1" style="width: 60px;" disabled />
+          <p>Bought: <span id="counter-${index}">0</span></p>
+          <button id="btn-${index}" onclick="buyItem(${item.price}, 'qty-${index}', 'counter-${index}', ${index})" disabled>Buy</button>
+        `;
+        store.appendChild(itemDiv);
+      });
+    }
+
+    function startGame() {
+      if (gameStarted) return; // Already started
+      gameStarted = true;
+      resultDisplay.innerText = "";
+      disableBuying(false);
+      startBtn.disabled = true;
+
+      timerInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+          clearInterval(timerInterval);
+          if (money > 0) {
+            resultDisplay.innerText = "⏱️ Time's up! You failed to spend all the money.";
+          }
+          disableBuying(true);
+          startBtn.disabled = false;
+          gameStarted = false;
+          return;
+        }
+        totalSeconds--;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function resetGame() {
+      clearInterval(timerInterval);
+      money = startingMoney;
+      totalSeconds = timerMinutes * 60;
+      boughtCount.fill(0);
+      updateMoneyDisplay();
+      updateTimerDisplay();
+      resultDisplay.innerText = "";
+      gameStarted = false;
+      disableBuying(true);
+      startBtn.disabled = false;
+
+      // Reset bought counters and qty inputs
+      items.forEach((_, index) => {
+        document.getElementById(`counter-${index}`).textContent = "0";
+        const qtyInput = document.getElementById(`qty-${index}`);
+        if (qtyInput) qtyInput.value = 1;
+      });
+    }
+
+    // Initial setup
+    renderStore();
+    updateMoneyDisplay();
+    updateTimerDisplay();
+
+    // Hook buttons
+    startBtn.addEventListener('click', startGame);
+    resetBtn.addEventListener('click', resetGame);
+  </script>
+<footer style="margin-top: 40px; font-size: 16px; color: #555;">
+  Created by Shivansh
+</footer>
+</body>
+</html>
